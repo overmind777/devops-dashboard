@@ -1,27 +1,38 @@
-import { Injectable } from '@nestjs/common';
-import { CreateMonitoringDto } from './dto/create-monitoring.dto';
-import { UpdateMonitoringDto } from './dto/update-monitoring.dto';
+import { Inject, Injectable } from '@nestjs/common';
+import Docker from 'dockerode';
 
 @Injectable()
 export class MonitoringService {
-  create(createMonitoringDto: CreateMonitoringDto) {
-    return 'This action adds a new monitoring';
+  constructor(@Inject('DOCKER_CLIENT') private docker: Docker) {}
+
+  async startContainer(containerId: string) {
+    const container = this.docker.getContainer(containerId);
+    await container.start();
   }
 
-  findAll() {
-    console.log('findAll');
-    return `This action returns all monitoring`;
+  async stopContainer(containerId: string) {
+    const container = this.docker.getContainer(containerId);
+    await container.stop();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} monitoring`;
-  }
+  async findAllContainers() {
+    const containers = await this.docker.listContainers({ all: true });
 
-  update(id: number, updateMonitoringDto: UpdateMonitoringDto) {
-    return `This action updates a #${id} monitoring`;
-  }
+    const detailed = await Promise.all(
+      containers.map(async (containerInfo) => {
+        const container = this.docker.getContainer(containerInfo.Id);
+        const data = await container.inspect();
+        return {
+          id: containerInfo.Id,
+          name: data.Name,
+          image: data.Config.Image,
+          state: data.State,
+          status: data.State.Status,
+          ports: data.NetworkSettings.Ports,
+        };
+      }),
+    );
 
-  remove(id: number) {
-    return `This action removes a #${id} monitoring`;
+    return detailed;
   }
 }

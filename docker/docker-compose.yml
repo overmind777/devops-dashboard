@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16
+    container_name: test-db
+    restart: always
+    environment:
+      - 'POSTGRES_HOST_AUTH_METHOD=trust'
+    ports:
+      - '5432:5432'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      myweb:
+
+volumes:
+  db-data:
+
+networks:
+  myweb:
+    driver: bridge

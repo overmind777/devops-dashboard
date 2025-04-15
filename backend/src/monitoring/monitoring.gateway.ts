@@ -5,8 +5,6 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { MonitoringService } from './monitoring.service';
-import { CreateMonitoringDto } from './dto/create-monitoring.dto';
-import { UpdateMonitoringDto } from './dto/update-monitoring.dto';
 import { Server } from 'socket.io';
 import { OnModuleInit } from '@nestjs/common';
 
@@ -14,6 +12,7 @@ import { OnModuleInit } from '@nestjs/common';
   cors: {
     origin: '*',
   },
+  namespace: 'monitoring',
 })
 export class MonitoringGateway implements OnModuleInit {
   constructor(private readonly monitoringService: MonitoringService) {}
@@ -23,36 +22,43 @@ export class MonitoringGateway implements OnModuleInit {
 
   onModuleInit(): any {
     this.server.on('connection', (socket) => {
-      console.log(socket.id);
       console.log('Connected to Monitoring');
     });
   }
 
-  @SubscribeMessage('createMonitoring')
-  create(@MessageBody() createMonitoringDto: CreateMonitoringDto) {
-    return this.monitoringService.create(createMonitoringDto);
+  @SubscribeMessage('findAllContainers')
+  async findAllContainers() {
+    const result = await this.monitoringService.findAllContainers();
+    return {
+      event: 'findAllContainers',
+      data: result,
+    };
   }
 
-  @SubscribeMessage('findAllMonitoring')
-  findAll() {
-    return this.monitoringService.findAll();
+  @SubscribeMessage('startContainer')
+  async startContainer(@MessageBody() containerId: string) {
+    try {
+      await this.monitoringService.startContainer(containerId);
+      return { event: 'containerStarted', data: this.findAllContainers() };
+    } catch (error) {
+      return {
+        event: 'error',
+        data: `Container was not start: ${error.message}`,
+      };
+    }
   }
 
-  @SubscribeMessage('findOneMonitoring')
-  findOne(@MessageBody() id: number) {
-    return this.monitoringService.findOne(id);
-  }
-
-  @SubscribeMessage('updateMonitoring')
-  update(@MessageBody() updateMonitoringDto: UpdateMonitoringDto) {
-    return this.monitoringService.update(
-      updateMonitoringDto.id,
-      updateMonitoringDto,
-    );
-  }
-
-  @SubscribeMessage('removeMonitoring')
-  remove(@MessageBody() id: number) {
-    return this.monitoringService.remove(id);
+  @SubscribeMessage('stopContainer')
+  async stopContainer(@MessageBody() containerId: string) {
+    console.log('stop container');
+    try {
+      await this.monitoringService.stopContainer(containerId);
+      return { event: 'containerStopped', data: `containerId=${containerId}` };
+    } catch (error) {
+      return {
+        event: 'error',
+        data: `Container was not stopped: ${error.message}`,
+      };
+    }
   }
 }

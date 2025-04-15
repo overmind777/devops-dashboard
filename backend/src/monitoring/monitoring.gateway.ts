@@ -35,11 +35,20 @@ export class MonitoringGateway implements OnModuleInit {
     };
   }
 
+  @SubscribeMessage('updateContainer')
+  async updateContainer(@MessageBody() containerId: string) {
+    const result = await this.monitoringService.updateContainer(containerId);
+    return {
+      event: 'updateContainer',
+      data: result,
+    };
+  }
+
   @SubscribeMessage('startContainer')
   async startContainer(@MessageBody() containerId: string) {
     try {
       await this.monitoringService.startContainer(containerId);
-      return { event: 'containerStarted', data: this.findAllContainers() };
+      return { event: 'containerStarted', data: await this.findAllContainers() };
     } catch (error) {
       return {
         event: 'error',

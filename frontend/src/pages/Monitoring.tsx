@@ -12,40 +12,45 @@ function Monitoring(props) {
         socketRef.current = socket
 
         socket.on('findAllContainers', (data) => {
-            console.log(data)
             setContainers(data)
+        })
+        socket.on('updateContainer', (updatedContainer) => {
+            console.log(updatedContainer.state)
+            setContainers(prev =>
+                prev.map(c => c.id === updatedContainer.id ? updatedContainer : c)
+            )
         })
 
         socket.emit('monitoring-socket', 'Привіт від клієнта!')
         socket.emit('findAllContainers')
+        // socket.emit('updateContainer')
 
         return () => {
             socket.disconnect()
         }
     }, [])
 
-    useEffect( () => {
-        console.log(containers)
-    }, [containers] )
-
     const handleStart = (containerId: string) => {
         socketRef.current?.emit('startContainer', containerId)
+        socketRef.current?.emit('updateContainer', containerId)
     }
 
     const handleStop = (containerId: string) => {
         socketRef.current?.emit('stopContainer', containerId)
+        socketRef.current?.emit('updateContainer', containerId)
     }
 
     const handleRestart = (containerId: string) => {
         socketRef.current?.emit('restartContainer', containerId)
+        socketRef.current?.emit('updateContainer', containerId)
     }
 
     return (
         <div className="p-6">
             <ul>
-                {containers.map((item, i) => {
+                {containers?.map((item) => {
                     return (
-                        <li key={i}>
+                        <li key={item.id}>
                             <div className="flex items-center justify-center gap-[15px]">
                                 <p>{item.name}</p>
                                 <p>{item.state.Status}</p>

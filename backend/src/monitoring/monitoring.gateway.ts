@@ -21,8 +21,8 @@ export class MonitoringGateway implements OnModuleInit {
   server: Server;
 
   onModuleInit(): any {
-    this.server.on('connection', (socket) => {
-      console.log('Connected to Monitoring');
+    this.server.on('connection', () => {
+      this.server.emit('findAllContainers');
     });
   }
 
@@ -39,7 +39,10 @@ export class MonitoringGateway implements OnModuleInit {
   async startContainer(@MessageBody() containerId: string) {
     try {
       await this.monitoringService.startContainer(containerId);
-      return { event: 'containerStarted', data: this.findAllContainers() };
+      return {
+        event: 'startContainer',
+        data: await this.findAllContainers(),
+      };
     } catch (error) {
       return {
         event: 'error',

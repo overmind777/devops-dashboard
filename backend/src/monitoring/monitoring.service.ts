@@ -47,4 +47,17 @@ export class MonitoringService {
 
     return detailed;
   }
+
+  async updateContainer(containerId: string) {
+    const container = this.docker.getContainer(containerId);
+    const data = await container.inspect();
+    return {
+      id: container.id,
+      name: data.Name,
+      image: data.Config.Image,
+      state: data.State,
+      status: data.State.Status,
+      ports: data.NetworkSettings.Ports,
+    };
+  }
 }

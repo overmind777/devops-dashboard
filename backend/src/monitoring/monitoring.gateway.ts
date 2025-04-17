@@ -6,25 +6,26 @@ import {
 } from '@nestjs/websockets';
 import { MonitoringService } from './monitoring.service';
 import { Server } from 'socket.io';
-import { OnModuleInit } from '@nestjs/common';
+import { forwardRef, Inject } from '@nestjs/common';
 
 @WebSocketGateway({
   cors: {
     origin: '*',
   },
-  namespace: 'monitoring',
+  namespace: 'containers',
 })
-export class MonitoringGateway implements OnModuleInit {
-  constructor(private readonly monitoringService: MonitoringService) {}
+export class MonitoringGateway {
+  constructor(
+    @Inject(forwardRef(() => MonitoringService))
+    private monitoringService: MonitoringService,
+  ) {
+    MonitoringGateway.instance = this;
+  }
+
+  static instance: MonitoringGateway;
 
   @WebSocketServer()
   server: Server;
-
-  onModuleInit(): any {
-    this.server.on('connection', () => {
-      this.server.emit('findAllContainers');
-    });
-  }
 
   @SubscribeMessage('findAllContainers')
   async findAllContainers() {
@@ -39,29 +40,32 @@ export class MonitoringGateway implements OnModuleInit {
   async startContainer(@MessageBody() containerId: string) {
     try {
       await this.monitoringService.startContainer(containerId);
-      return {
-        event: 'startContainer',
-        data: await this.findAllContainers(),
-      };
+      await this.emitAllContainers();
+      return { event: 'startContainer', data: containerId };
     } catch (error) {
       return {
         event: 'error',
-        data: `Container was not start: ${error.message}`,
+        data: `Container was not started: ${error.message}`,
       };
     }
   }
 
   @SubscribeMessage('stopContainer')
   async stopContainer(@MessageBody() containerId: string) {
-    console.log('stop container');
     try {
       await this.monitoringService.stopContainer(containerId);
-      return { event: 'containerStopped', data: `containerId=${containerId}` };
+      await this.emitAllContainers();
+      return { event: 'stopContainer', data: containerId };
     } catch (error) {
       return {
         event: 'error',
         data: `Container was not stopped: ${error.message}`,
       };
     }
+  }
+
+  async emitAllContainers() {
+    const containers = await this.monitoringService.findAllContainers();
+    this.server.emit('findAllContainers', containers);
   }
 }

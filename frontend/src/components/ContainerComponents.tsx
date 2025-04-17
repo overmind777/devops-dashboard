@@ -1,14 +1,21 @@
 import * as React from 'react';
+import { useEffect, useState } from 'react';
 import { ContainerProps } from '../types/types';
 
 const ContainerComponents = React.memo(
   function ContainerComponents( { item, handleStart, handleStop, handleRestart }: ContainerProps ): React.JSX.Element {
     const { id, name, state } = item;
-    console.log(state)
+    const [stateStatus, setStateStatus] = useState<string>(state.Status);
+
+    useEffect( () => {
+        setStateStatus( state.Status );
+    }, [item] );
+
+
     return (
       <>
         <p>{ name }</p>
-        <p>{ state?.Status }</p>
+        <p>{ stateStatus }</p>
         <button onClick={ () => {
           handleStart( id );
         } }>Start
@@ -24,11 +31,11 @@ const ContainerComponents = React.memo(
       </>
     );
   },
-  ( prevProps, nextProps ) => {
-    return (
-      prevProps.item.name === nextProps.item.name &&
-      prevProps.item.state.Status === nextProps.item.state.Status
-    );
-  },
+  // ( prevProps, nextProps ) => {
+  //   return (
+  //     prevProps.item.name === nextProps.item.name &&
+  //     prevProps.item.state.Status === nextProps.item.state.Status
+  //   );
+  // },
 );
 export default ContainerComponents;

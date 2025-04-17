@@ -6,7 +6,7 @@ services:
     environment:
       - 'POSTGRES_HOST_AUTH_METHOD=trust'
     ports:
-      - '5432:5432'
+      - '6543:6543'
     volumes:
       - db-data:/var/lib/postgresql/data
       - /var/run/docker.sock:/var/run/docker.sock

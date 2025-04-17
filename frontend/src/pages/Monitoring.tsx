@@ -1,78 +1,47 @@
-// import { CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts'
-import { useEffect, useRef, useState } from 'react';
-import { monitoringSocket } from '../sockets/monitoring-socket';
-import ContainerComponents from '../components/ContainerComponents';
-import { Socket } from 'socket.io-client';
-import { Container } from '../types/types';
+import 'react-toastify/dist/ReactToastify.css';
+import {
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
+const data = [
+  { name: 'Group A', value: 400 },
+  { name: 'Group B', value: 300 },
+  { name: 'Group C', value: 300 },
+  { name: 'Group D', value: 200 },
+  { name: 'Group E', value: 278 },
+  { name: 'Group F', value: 189 },
+];
 
-function Monitoring( props: any ) {
-
-  const [containers, setContainers] = useState<Container[]>( [] );
-  const socketRef = useRef<Socket | null>( null );
-  const socket = monitoringSocket();
-
-  useEffect( () => {
-
-    socketRef.current = socket;
-
-    socket.on( 'findAllContainers', ( data ) => {
-      if (!Array.isArray( data )) {
-        console.error( 'Invalid containers:', data );
-        return;
-      }
-
-      setContainers( ( prev: any ) => {
-        return data.map( ( newContainer: any ) => {
-          const oldContainer = prev.find( ( c: any ) => c.id === newContainer.id );
-          if (!oldContainer) return newContainer;
-
-          if (JSON.stringify( oldContainer ) !== JSON.stringify( newContainer )) {
-            return newContainer;
-          }
-
-          return oldContainer;
-        } );
-      } );
-    } );
-
-    socket.emit( 'findAllContainers' );
-    socket.emit( 'startContainer' );
-
-    return () => {
-      socket.disconnect();
-    };
-  }, [] );
-
-  const handleStart = ( containerId: string ): any => {
-    socketRef.current?.emit( 'startContainer', containerId );
-  };
-
-  const handleStop = ( containerId: string ): any => {
-    socketRef.current?.emit( 'stopContainer', containerId );
-  };
-
-  const handleRestart = ( containerId: string ): any => {
-    socketRef.current?.emit( 'restartContainer', containerId );
-  };
+function Monitoring() {
 
   return (
-    <div className="p-6">
-      <ul>
-        { containers?.map( ( item: any ) => {
-          return (
-            <li key={ item.id } className="flex items-center justify-center gap-[15px]">
-              <ContainerComponents item={ item }
-                                   handleStart={ handleStart }
-                                   handleStop={ handleStop }
-                                   handleRestart={ handleRestart }
-              />
-            </li>
-          );
-        } ) }
-      </ul>
+    <div style={{ width: '100%', height: '400px' }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart width={400} height={400}>
+          <Pie dataKey={'value'}
+               startAngle={180}
+               endAngle={0}
+               data={data}
+               cx="50%"
+               cy="50%"
+               outerRadius={80}
+               fill="#8884d8"
+               label/>
+          <Tooltip />
+          <Legend />
+        </PieChart>
+      </ResponsiveContainer>
     </div>
-  );
+  )
 }
 
 export default Monitoring;

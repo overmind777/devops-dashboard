@@ -21,7 +21,7 @@ const data = [
   { name: 'Group F', value: 189 },
 ];
 
-function Monitoring() {
+function container() {
 
   return (
     <div style={{ width: '100%', height: '400px' }}>
@@ -44,4 +44,4 @@ function Monitoring() {
   )
 }
 
-export default Monitoring;
+export default container;

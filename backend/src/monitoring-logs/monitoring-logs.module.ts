@@ -1,19 +1,19 @@
 import { Module } from '@nestjs/common';
-import { MonitoringService } from './monitoring.service';
-import { MonitoringGateway } from './monitoring.gateway';
+import { MonitoringLogsService } from './monitoring-logs.service';
+import { MonitoringLogsGateway } from './monitoring-logs.gateway';
 import * as Docker from 'dockerode';
 import { CustomLoggerModule } from '../common/logger/custom-logger.module';
 
 @Module({
   imports: [CustomLoggerModule],
   providers: [
-    MonitoringGateway,
-    MonitoringService,
+    MonitoringLogsGateway,
+    MonitoringLogsService,
     {
       provide: 'DOCKER_CLIENT',
       useFactory: () => new Docker({ socketPath: '/var/run/docker.sock' }),
     },
   ],
-  exports: [MonitoringService],
+  exports: [MonitoringLogsService],
 })
-export class MonitoringModule {}
+export class MonitoringLogsModule {}

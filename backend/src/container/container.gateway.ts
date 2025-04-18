@@ -4,7 +4,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { MonitoringService } from './monitoring.service';
+import { ContainerService } from './container.service';
 import { Server } from 'socket.io';
 import { forwardRef, Inject } from '@nestjs/common';
 
@@ -14,22 +14,22 @@ import { forwardRef, Inject } from '@nestjs/common';
   },
   namespace: 'containers',
 })
-export class MonitoringGateway {
+export class ContainerGateway {
   constructor(
-    @Inject(forwardRef(() => MonitoringService))
-    private monitoringService: MonitoringService,
+    @Inject(forwardRef(() => ContainerService))
+    private containerService: ContainerService,
   ) {
-    MonitoringGateway.instance = this;
+    ContainerGateway.instance = this;
   }
 
-  static instance: MonitoringGateway;
+  static instance: ContainerGateway;
 
   @WebSocketServer()
   server: Server;
 
   @SubscribeMessage('findAllContainers')
   async findAllContainers() {
-    const result = await this.monitoringService.findAllContainers();
+    const result = await this.containerService.findAllContainers();
     return {
       event: 'findAllContainers',
       data: result,
@@ -39,7 +39,7 @@ export class MonitoringGateway {
   @SubscribeMessage('startContainer')
   async startContainer(@MessageBody() containerId: string) {
     try {
-      await this.monitoringService.startContainer(containerId);
+      await this.containerService.startContainer(containerId);
       await this.emitAllContainers();
       return { event: 'startContainer', data: containerId };
     } catch (error) {
@@ -53,7 +53,7 @@ export class MonitoringGateway {
   @SubscribeMessage('stopContainer')
   async stopContainer(@MessageBody() containerId: string) {
     try {
-      await this.monitoringService.stopContainer(containerId);
+      await this.containerService.stopContainer(containerId);
       await this.emitAllContainers();
       return { event: 'stopContainer', data: containerId };
     } catch (error) {
@@ -65,7 +65,7 @@ export class MonitoringGateway {
   }
 
   async emitAllContainers() {
-    const containers = await this.monitoringService.findAllContainers();
+    const containers = await this.containerService.findAllContainers();
     this.server.emit('findAllContainers', containers);
   }
 }

@@ -1,17 +1,17 @@
 import { forwardRef, Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import Docker from 'dockerode';
 import { CustomLogger } from '../common/logger/custom-logger';
-import { MonitoringGateway } from './monitoring.gateway';
+import { ContainerGateway } from './container.gateway';
 
 @Injectable()
-export class MonitoringService implements OnModuleInit {
+export class ContainerService implements OnModuleInit {
   constructor(
     @Inject('DOCKER_CLIENT') private docker: Docker,
-    @Inject(forwardRef(() => MonitoringGateway))
-    private readonly gateway: MonitoringGateway,
+    @Inject(forwardRef(() => ContainerGateway))
+    private readonly gateway: ContainerGateway,
     private readonly logger: CustomLogger,
   ) {
-    this.logger.setContext('MonitoringService');
+    this.logger.setContext('containerService');
   }
 
   onModuleInit() {
@@ -57,13 +57,6 @@ export class MonitoringService implements OnModuleInit {
     const detailed = await Promise.all(
       containers.map(async (containerInfo) => {
         const container = this.docker.getContainer(containerInfo.Id);
-        const containerStats = await container.stats({ stream: false });
-        console.log(
-          (containerStats.memory_stats.usage /
-            containerStats.memory_stats.limit) *
-            100,
-        );
-        console.log(containerStats.cpu_stats.cpu_usage);
         const data = await container.inspect();
         return {
           id: containerInfo.Id,

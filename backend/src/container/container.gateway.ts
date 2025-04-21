@@ -9,10 +9,7 @@ import { Server } from 'socket.io';
 import { forwardRef, Inject } from '@nestjs/common';
 
 @WebSocketGateway({
-  cors: {
-    origin: '*',
-  },
-  namespace: 'containers',
+  namespace: '/containers',
 })
 export class ContainerGateway {
   constructor(

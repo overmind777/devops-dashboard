@@ -1,6 +1,5 @@
 import {
   OnGatewayConnection,
-  OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -12,10 +11,7 @@ import { forwardRef, Inject } from '@nestjs/common';
 import { MonitoringLogsService } from './monitoring-logs.service';
 
 @WebSocketGateway({
-  cors: {
-    origin: '*',
-  },
-  namespace: 'monitoring-logs',
+  namespace: '/logs',
 })
 // OnGatewayDisconnect
 export class MonitoringLogsGateway implements OnGatewayConnection {

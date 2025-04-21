@@ -2,10 +2,8 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import Docker from 'dockerode';
 import { CustomLogger } from '../common/logger/custom-logger';
 import { MonitoringLogsGateway } from './monitoring-logs.gateway';
-import { Readable, Stream } from 'stream';
+import { Readable, PassThrough } from 'stream';
 import { Socket } from 'socket.io';
-
-// import * as stream from 'node:stream';
 
 @Injectable()
 export class MonitoringLogsService {
@@ -21,39 +19,67 @@ export class MonitoringLogsService {
   }
 
   async streamContainerLogs(containerId: string, client: Socket) {
-    let arr;
+    this.customLogger.log(containerId);
     const container = this.docker.getContainer(containerId);
-    const logStream = new Stream.PassThrough();
-    logStream.on('data', (chunk) => {
-      arr.push(chunk.toString('utf8'));
-    });
+    const logStream = new PassThrough();
 
     container.logs(
       {
         follow: true,
         stdout: true,
         stderr: true,
+        tail: 100,
       },
       (err, stream) => {
         if (err) {
-          this.customLogger.error(err);
+          this.customLogger.error(err.message);
+          client.emit('error', `Stream error: ${err.message}`);
+          return;
         }
+
         const readable = stream as Readable;
 
         this.activeStreams.set(client.id, readable);
 
-        container.modem.demuxStream(stream, logStream, logStream);
-
-        stream.on('end', function () {
-          logStream.end('!stop!');
+        logStream.on('data', (chunk: Buffer) => {
+          client.emit('logs', {
+            containerId,
+            log: chunk.toString('utf8'),
+          });
         });
 
-        setTimeout(function () {
+        container.modem.demuxStream(stream, logStream, logStream);
+
+        stream.on('end', () => {
+          logStream.end();
+          client.emit('logs', {
+            containerId,
+            log: '[Log stream ended]',
+          });
+        });
+
+        stream.on('error', (err) => {
+          this.customLogger.error(err.message);
+          client.emit('logs', {
+            containerId,
+            log: `[Stream error]: ${err.message}`,
+          });
+        });
+
+        setTimeout(() => {
           readable.destroy();
+          this.activeStreams.delete(client.id);
         }, 2000);
       },
     );
-    console.log(arr);
-    return arr;
+
+    client.on('disconnect', () => {
+      const active = this.activeStreams.get(client.id);
+      if (active) {
+        active.destroy();
+        this.activeStreams.delete(client.id);
+        this.customLogger.log(`Disconnected and destroyed stream for client ${client.id}`);
+      }
+    });
   }
 }

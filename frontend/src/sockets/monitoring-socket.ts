@@ -3,7 +3,10 @@ import { io, Socket } from 'socket.io-client'
 let socket: Socket
 
 export const monitoringSocket = () => {
-    socket = io( 'http://127.0.0.1:3000/containers' )
+    socket = io( 'ws://127.0.0.1:3000/containers' , {
+        transports: ['websocket']
+    } )
+
     socket.on( 'connect', () => {
         console.log( 'Connected to Monitoring' )
     } )

@@ -1,50 +1,85 @@
 import { loggerSocket } from '../sockets/logger-socket';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
+import { Container } from '../types/types';
+import { monitoringSocket } from '../sockets/monitoring-socket';
 
 function LogsPage() {
-  const [logs, setLogs] = useState<string[]>( [] );
+  const loggerSocketRef = useRef<any>(null);
+  const monitoringSocketRef = useRef<any>(null);
 
-  useEffect( () => {
-    const socket = loggerSocket();
-    socket.on( 'streamLogs', ( data ) => {
-      console.log('streamLogs', data );
-    } );
+  const [logs, setLogs] = useState<string[]>([]);
+  const [containers, setContainers] = useState<Container[]>([]);
 
-    socket.on( 'data', ( data ) => {
-      console.log('data', data );
-      // setLogs( res );
-    } );
+  useEffect(() => {
+    if (containers.length > 0) {
+      handleContainerChange(containers[0].id);
+    }
+  }, [containers]);
 
-    socket.on( 'logs', ( data ) => {
-      console.log('logs', data );
-      // setLogs( res );
-    } );
+  useEffect(() => {
+    const socketContainers = monitoringSocket();
+    const socketLogs = loggerSocket();
 
-    socket.on( 'log', ( data ) => {
-      console.log('log', data );
-      // setLogs( res );
-    } );
+    loggerSocketRef.current = socketLogs;
+    monitoringSocketRef.current = socketContainers;
 
-    socket.on( 'error', ( message: string ) => {
-      toast.error( message );
-    } );
+    socketContainers.on('findAllContainers', (data) => {
+      if (!Array.isArray(data)) {
+        return;
+      }
+      setContainers(data);
+    });
 
-    socket.emit( 'streamLogs', '61a7019e978bc8ef076d1c34d56a5b789352e67c256def80f70b2ff7451cd0e7' );
-    socket.emit('data')
-    socket.emit('logs')
-    socket.emit('log')
+    socketContainers.emit('findAllContainers');
+
+    socketLogs.on('logs', (data) => {
+      const lines = data.log.split('\n').filter(Boolean);
+      setLogs((prev) => [...prev, lines]);
+    });
+
+    socketLogs.on('error', (message: string) => {
+      toast.error(message);
+    });
+
+    socketLogs.emit('streamLogs');
 
     return () => {
-      socket.off( 'streamLogs' );
-      socket.off( 'error' );
-      socket.disconnect();
+      socketLogs.off('streamLogs');
+      socketLogs.off('error');
+      socketLogs.disconnect();
+
+      socketContainers.off('findAllContainers');
+      socketContainers.disconnect();
     };
-  }, [] );
+  }, []);
+
+  const handleContainerChange = (containerId: any) => {
+    setLogs([]);
+    loggerSocketRef.current?.emit('streamLogs', containerId);
+  };
 
   return (
-    <div>
-      <p>{ logs }</p>
+    <div className="flex flex-col justify-center items-center w-[50%]">
+      {containers.length > 0 && (
+        <select
+          name="containers-select"
+          id="cont-select"
+          className="w-[300px]"
+          onChange={(e) => handleContainerChange(e.target.value)}
+        >
+          {containers.map((container) => {
+            return (
+              <option key={container.id} value={container.id}>{container.name}</option>
+            );
+          })}
+        </select>
+      )}
+      <ul>
+        {logs.map((log, idx) => {
+          return <li key={idx} className="border border-red-200 list-none text-left">{log}</li>;
+        })}
+      </ul>
     </div>
   );
 }

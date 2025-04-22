@@ -1,11 +1,12 @@
 import {
+  ConnectedSocket,
   MessageBody,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
 import { ContainerService } from './container.service';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { forwardRef, Inject } from '@nestjs/common';
 
 @WebSocketGateway({
@@ -31,6 +32,22 @@ export class ContainerGateway {
       event: 'findAllContainers',
       data: result,
     };
+  }
+
+  @SubscribeMessage('getContainersStats')
+  async getContainersStats(
+    @MessageBody() containerId: string,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    try {
+      const stats = await this.containerService.getContainerStats(containerId);
+      client.emit('containerStats', {
+        containerId,
+        stats,
+      });
+    } catch (e) {
+      client.emit('error', e);
+    }
   }
 
   @SubscribeMessage('startContainer')

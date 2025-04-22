@@ -37,7 +37,7 @@ function container() {
                fill="#8884d8"
                label/>
           <Tooltip />
-          <Legend />
+          {/*<Legend />*/}
         </PieChart>
       </ResponsiveContainer>
     </div>

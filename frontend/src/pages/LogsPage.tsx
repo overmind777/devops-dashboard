@@ -60,26 +60,30 @@ function LogsPage() {
   };
 
   return (
-    <div className="flex flex-col justify-center items-center w-[50%]">
+    <div className="flex justify-center items-start w-full h-full gap-[20px]">
       {containers.length > 0 && (
-        <select
+        <div className='sticky top-[20px] z-10'>
+          <select
           name="containers-select"
           id="cont-select"
-          className="w-[300px]"
-          onChange={(e) => handleContainerChange(e.target.value)}
+          className="basis-[20vw] border border-gray-500 rounded-[10px] p-[10px] "
+          onChange={ ( e ) => handleContainerChange( e.target.value ) }
         >
-          {containers.map((container) => {
+          { containers.map( ( container ) => {
             return (
-              <option key={container.id} value={container.id}>{container.name}</option>
+              <option key={ container.id } value={ container.id }>{ container.name }</option>
             );
-          })}
+          } ) }
         </select>
+        </div>
       )}
-      <ul>
-        {logs.map((log, idx) => {
-          return <li key={idx} className="border border-red-200 list-none text-left">{log}</li>;
-        })}
-      </ul>
+      <div className='overflow-y-auto h-[90%]'>
+        <ul className="flex flex-col gap-[5px]">
+          { logs.map( ( log, idx ) => {
+            return <li key={ idx } className="list-none text-left">{ log }</li>;
+          } ) }
+        </ul>
+      </div>
     </div>
   );
 }

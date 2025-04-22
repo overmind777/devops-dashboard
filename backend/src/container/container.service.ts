@@ -73,6 +73,34 @@ export class ContainerService implements OnModuleInit {
     return detailed;
   }
 
+  async getContainerStats(containerId: string) {
+    const container = await this.docker.getContainer(containerId);
+    return new Promise((resolve, reject) => {
+      container.stats({ stream: false }, (err, stats) => {
+        if (err) {
+          return reject(err);
+        }
+        const cpuDelta =
+          stats.cpu_stats.cpu_usage.total_usage -
+          stats.precpu_stats.cpu_usage.total_usage;
+        const systemDelta =
+          stats.cpu_stats.system_cpu_usage -
+          stats.precpu_stats.system_cpu_usage;
+        const cpuUsage =
+          (cpuDelta / systemDelta) * stats.cpu_stats.online_cpus * 100;
+        const memoryUsage = stats.memory_stats.usage / (1024 * 1024);
+        const memoryLimit = stats.memory_stats.limit / (1024 * 1024);
+        const memoryPercent = (memoryUsage / memoryLimit) * 100;
+
+        resolve({
+          cpu: Number(cpuUsage.toFixed(2)),
+          memory: Number(memoryUsage.toFixed(2)),
+          memoryPercent: Number(memoryPercent.toFixed(2)),
+        });
+      });
+    });
+  }
+
   async updateContainer(containerId: string) {
     const container = this.docker.getContainer(containerId);
     const data = await container.inspect();

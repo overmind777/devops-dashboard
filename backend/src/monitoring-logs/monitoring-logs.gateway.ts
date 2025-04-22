@@ -9,6 +9,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { forwardRef, Inject } from '@nestjs/common';
 import { MonitoringLogsService } from './monitoring-logs.service';
+import { CustomLogger } from '../common/logger/custom-logger';
 
 @WebSocketGateway({
   namespace: '/logs',
@@ -18,19 +19,22 @@ export class MonitoringLogsGateway implements OnGatewayConnection {
   constructor(
     @Inject(forwardRef(() => MonitoringLogsService))
     private monitoringLogsService: MonitoringLogsService,
-  ) {}
+    private readonly customLogger: CustomLogger
+  ) {
+    this.customLogger.setContext('MonitoringLogsGateway');
+  }
 
   @WebSocketServer()
   server: Server;
 
   handleConnection(client: Socket) {
-    console.log(`Client connected: ${client.id}`);
+    this.customLogger.log(`Client connected: ${client.id}`);
   }
 
-  // handleDisconnect(client: Socket) {
-  //   console.log(`Client disconnected: ${client.id}`);
-  //   this.monitoringLogsService.stopStream(client.id);
-  // }
+  handleDisconnect(client: Socket) {
+    this.customLogger.log(`Client disconnected: ${client.id}`);
+    this.monitoringLogsService.stopStream();
+  }
 
   @SubscribeMessage('streamLogs')
   handleStreamLogs(

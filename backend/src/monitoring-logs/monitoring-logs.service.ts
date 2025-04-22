@@ -19,7 +19,6 @@ export class MonitoringLogsService {
   }
 
   async streamContainerLogs(containerId: string, client: Socket) {
-    this.customLogger.log(containerId);
     const container = this.docker.getContainer(containerId);
     const logStream = new PassThrough();
 
@@ -78,8 +77,14 @@ export class MonitoringLogsService {
       if (active) {
         active.destroy();
         this.activeStreams.delete(client.id);
-        this.customLogger.log(`Disconnected and destroyed stream for client ${client.id}`);
+        this.customLogger.log(
+          `Disconnected and destroyed stream for client ${client.id}`,
+        );
       }
     });
+  }
+
+  async stopStream() {
+    await this.activeStreams.clear();
   }
 }

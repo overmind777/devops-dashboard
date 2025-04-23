@@ -8,18 +8,18 @@ const ContainerComponents = React.memo(
   function ContainerComponents( { item, handleStart, handleStop, handleRestart }: ContainerProps ): React.JSX.Element {
     const { id, name, state } = item;
     const [stateStatus, setStateStatus] = useState<string>( state.Status );
-    const [cpu, setCpu] = useState<number>(0);
-    const [ram, setRam] = useState<number>(0);
+    const [cpu, setCpu] = useState<number>( 0 );
+    const [ram, setRam] = useState<number>( 0 );
 
     useEffect( () => {
       const socket = monitoringSocket();
-      socket.emit('getContainersStats', id);
-      socket.on('containerStats', (data)=>{
-        if(data.containerId === id){
-          setCpu(data.stats.cpu);
-          setRam(data.stats.memoryPercent);
+      socket.emit( 'getContainersStats', id );
+      socket.on( 'containerStats', ( data ) => {
+        if (data.containerId === id) {
+          setCpu( data.stats.cpu );
+          setRam( data.stats.memoryPercent );
         }
-      })
+      } );
       setStateStatus( state.Status );
 
     }, [item] );
@@ -38,8 +38,8 @@ const ContainerComponents = React.memo(
     return (
       <div className="w-full h-full">
         <div className="w-full h-[70%]">
-          <ResponsiveContainer>
-            <PieChart>
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart width={ 400 } height={ 400 }>
               <Pie
                 data={ chartData }
                 dataKey="value"
@@ -47,7 +47,7 @@ const ContainerComponents = React.memo(
                 endAngle={ 180 }
                 cx="50%"
                 cy="80%"
-                outerRadius={ 60 }
+                outerRadius={ 40 }
                 fill="#8884d8"
                 label
               />
@@ -58,28 +58,36 @@ const ContainerComponents = React.memo(
                 endAngle={ 180 }
                 cx="50%"
                 cy="80%"
-                innerRadius={ 70 }
-                outerRadius={ 90 }
+                innerRadius={ 100 }
+                outerRadius={ 120 }
                 fill="#82ca9d"
                 label
               />
             </PieChart>
           </ResponsiveContainer>
         </div>
-        <p>{ name }</p>
-        <p>{ stateStatus }</p>
-        <button onClick={ () => {
-          handleStart( id );
-        } }>Start
-        </button>
-        <button onClick={ () => {
-          handleStop( id );
-        } }>Stop
-        </button>
-        <button onClick={ () => {
-          handleRestart( id );
-        } }>Restart
-        </button>
+        <div className='flex flex-col gap-[10px]'>
+          <h2>{ name }</h2>
+          { stateStatus === 'running' ? ( <p className="text-green-500">{ stateStatus }</p> ) : (
+            <p className="text-red-500">{ stateStatus }</p> ) }
+          <div className="flex justify-around">
+            <button
+              onClick={ () => {
+                handleStart( id );
+              } }>Start
+            </button>
+            <button
+              onClick={ () => {
+                handleStop( id );
+              } }>Stop
+            </button>
+            <button
+              onClick={ () => {
+                handleRestart( id );
+              } }>Restart
+            </button>
+          </div>
+        </div>
       </div>
     );
   },

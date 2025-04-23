@@ -64,7 +64,7 @@ function ContainersPage() {
       <ul className='flex flex-row justify-center gap-[20px]'>
         { containers?.map( ( item: any ) => {
           return (
-            <li key={ item.id } className="flex items-center justify-center gap-[5px] w-[300px] h-[300px] border border-gray-200">
+            <li key={ item.id } className="flex items-center justify-center gap-[5px] w-[400px] h-[400px] border border-gray-200">
               <ContainerComponents item={ item }
                                    handleStart={ handleStart }
                                    handleStop={ handleStop }

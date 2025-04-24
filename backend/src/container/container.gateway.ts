@@ -34,20 +34,13 @@ export class ContainerGateway {
     };
   }
 
-  @SubscribeMessage('getContainersStats')
+  @SubscribeMessage('startStatsStream')
   async getContainersStats(
     @MessageBody() containerId: string,
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
-    try {
-      const stats = await this.containerService.getContainerStats(containerId);
-      client.emit('containerStats', {
-        containerId,
-        stats,
-      });
-    } catch (e) {
-      client.emit('error', e);
-    }
+    this.containerService.stopStatsStream(client.id);
+    this.containerService.startStatsStream(containerId, client);
   }
 
   @SubscribeMessage('startContainer')

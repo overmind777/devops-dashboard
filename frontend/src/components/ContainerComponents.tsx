@@ -11,18 +11,25 @@ const ContainerComponents = React.memo(
     const [cpu, setCpu] = useState<number>( 0 );
     const [ram, setRam] = useState<number>( 0 );
 
-    useEffect( () => {
+    useEffect(() => {
       const socket = monitoringSocket();
-      socket.emit( 'getContainersStats', id );
-      socket.on( 'containerStats', ( data ) => {
-        if (data.containerId === id) {
-          setCpu( data.stats.cpu );
-          setRam( data.stats.memoryPercent );
-        }
-      } );
-      setStateStatus( state.Status );
 
-    }, [item] );
+      const handleStats = (data) => {
+        setCpu(data.cpu);
+        setRam(data.memoryPercent);
+      };
+
+      socket.emit('startStatsStream', id);
+      socket.on('containerStats', handleStats);
+
+      setStateStatus(state.Status);
+
+      return () => {
+        socket.off('containerStats', handleStats);
+        socket.emit('stopStatsStream', id);
+      };
+    }, [id, state.Status]);
+
 
     const chartData = [
       { name: 'CPU %', value: cpu },
@@ -66,7 +73,7 @@ const ContainerComponents = React.memo(
             </PieChart>
           </ResponsiveContainer>
         </div>
-        <div className='flex flex-col gap-[10px]'>
+        <div className="flex flex-col gap-[10px]">
           <h2>{ name }</h2>
           { stateStatus === 'running' ? ( <p className="text-green-500">{ stateStatus }</p> ) : (
             <p className="text-red-500">{ stateStatus }</p> ) }

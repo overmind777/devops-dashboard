@@ -71,6 +71,14 @@ export class ContainerGateway {
     }
   }
 
+  @SubscribeMessage('exec')
+  async handleExec(
+    @MessageBody() containerId: string,
+    @ConnectedSocket() client: Socket,
+  ) {
+    await this.containerService.handleExec(containerId, client);
+  }
+
   async emitAllContainers() {
     const containers = await this.containerService.findAllContainers();
     this.server.emit('findAllContainers', containers);

@@ -52,37 +52,6 @@ export class ContainerService {
     return detailed;
   }
 
-  // async getContainerStats(containerId: string) {
-  //   const container = this.docker.getContainer(containerId);
-  //
-  //   const stream = await container.stats({ stream: true });
-  //
-  //   return new Promise((resolve, reject) => {
-  //     stream.on('data', (err, stats) => {
-  //       if (err) {
-  //         return reject(err);
-  //       }
-  //       const cpuDelta =
-  //         stats.cpu_stats.cpu_usage.total_usage -
-  //         stats.precpu_stats.cpu_usage.total_usage;
-  //       const systemDelta =
-  //         stats.cpu_stats.system_cpu_usage -
-  //         stats.precpu_stats.system_cpu_usage;
-  //       const cpuUsage =
-  //         (cpuDelta / systemDelta) * stats.cpu_stats.online_cpus * 100;
-  //       const memoryUsage = stats.memory_stats.usage / (1024 * 1024);
-  //       const memoryLimit = stats.memory_stats.limit / (1024 * 1024);
-  //       const memoryPercent = (memoryUsage / memoryLimit) * 100;
-  //
-  //       resolve({
-  //         cpu: Number(cpuUsage.toFixed(2)),
-  //         memory: Number(memoryUsage.toFixed(2)),
-  //         memoryPercent: Number(memoryPercent.toFixed(2)),
-  //       });
-  //     });
-  //   });
-  // }
-
   startStatsStream(containerId: string, socket: any) {
     const container = this.docker.getContainer(containerId);
 
@@ -149,5 +118,33 @@ export class ContainerService {
       status: data.State.Status,
       ports: data.NetworkSettings.Ports,
     };
+  }
+
+  async handleExec(containerId: string, client: any) {
+    const container = this.docker.getContainer(containerId);
+    const exec = await container.exec({
+      Cmd: [
+        '/bin/bash',
+        '-c',
+        'export PS1="\\[\\u@\\h\\] \\W /\# "; exec /bin/bash',
+      ],
+      AttachStdout: true,
+      AttachStderr: true,
+      AttachStdin: true,
+      Tty: true,
+    });
+
+    const stream = await exec.start({ hijack: true, stdin: true });
+    client.on('execInput', (data) => {
+      stream.write(data);
+    });
+
+    stream.on('data', (chunk) => {
+      client.emit('execOutput', chunk.toString());
+    });
+
+    stream.on('end', () => {
+      client.emit('execOutput', '\r\n[Process exited]');
+    });
   }
 }

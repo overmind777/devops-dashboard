@@ -60,7 +60,7 @@ function LogsPage() {
   };
 
   return (
-    <div className="flex justify-center items-start w-full h-full gap-[20px]">
+    <div className="flex justify-start items-start w-full h-full gap-[20px]">
       {containers.length > 0 && (
         <div className='sticky top-[20px] z-10'>
           <select

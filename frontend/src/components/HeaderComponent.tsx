@@ -1,6 +1,6 @@
 import * as React from "react";
 
-function HeaderComponent( props ): React.JSX.Element {
+function HeaderComponent(): React.JSX.Element {
   return (
     <header className="flex gap-[5px] items-center justify-between pl-[10px] pr-[10px] bg-gray-800 dark:bg-gray-200 text-white">
       <div className='flex-none w-10 h-10'>

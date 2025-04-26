@@ -8,7 +8,7 @@ function Layout() {
     <div className='flex flex-col h-screen overflow-hidden'>
       <div className='flex flex-col'>
         <HeaderComponent />
-        <SideBarComponent />
+        <SideBarComponent names={['Monitoring', 'Containers', 'Logs', 'Settings']}/>
       </div>
       <main className='h-[100vh] flex p-4 bg-gray-50'>
         <Outlet />

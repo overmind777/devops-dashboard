@@ -13,11 +13,11 @@ import {
 import { monitoringSocket } from '../sockets/monitoring-socket';
 
 const ContainerComponents = React.memo(function ContainerComponents({
-  item,
-  handleStart,
-  handleStop,
-  handleRestart,
-}: ContainerProps): React.JSX.Element {
+                                                                      item,
+                                                                      handleStart,
+                                                                      handleStop,
+                                                                      handleRestart,
+                                                                    }: ContainerProps): React.JSX.Element {
   const { id, name, state } = item;
   const [stateStatus, setStateStatus] = useState<string>(state.Status);
   const [cpu, setCpu] = useState<number>(0);
@@ -26,7 +26,7 @@ const ContainerComponents = React.memo(function ContainerComponents({
   useEffect(() => {
     const socket = monitoringSocket();
 
-    const handleStats = (data) => {
+    const handleStats = (data: any) => {
       setCpu(data.cpu);
       setRam(data.memoryPercent);
     };
@@ -43,43 +43,45 @@ const ContainerComponents = React.memo(function ContainerComponents({
   }, [id, state.Status]);
 
   const chartData = [
-    { name: 'CPU %', value: cpu },
-    { name: 'Free CPU', value: 100 - cpu },
+    { name: 'CPU %', value: cpu, fill: 'red' },
+    { name: 'Free CPU', value: 100 - cpu, fill: 'green' },
   ];
 
   const memoryData = [
-    { name: 'RAM %', value: ram },
-    { name: 'Free RAM', value: 100 - ram },
+    { name: 'RAM %', value: ram, fill: 'red' },
+    { name: 'Free RAM', value: 100 - ram, fill: 'green' },
   ];
 
   return (
     <div className="w-full h-full">
       <div className="w-full h-[70%]">
-        <RadialBarChart
-          width={300}
-          height={300}
-          innerRadius="10%"
-          outerRadius="80%"
-          data={chartData}
-          startAngle={180}
-          endAngle={0}
-        >
-          <RadialBar
-            minAngle={15}
-            label={{ fill: '#666', position: 'insideStart' }}
-            background
-            clockWise={true}
-          />
-          <Legend
-            iconSize={10}
-            width={120}
-            height={140}
-            layout="vertical"
-            verticalAlign="middle"
-            align="right"
-          />
-          <Tooltip />
-        </RadialBarChart>
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart width={400} height={400}>
+            <Pie
+              data={chartData}
+              dataKey="value"
+              startAngle={0}
+              endAngle={180}
+              cx="50%"
+              cy="80%"
+              outerRadius={40}
+              fill="fill"
+              label
+            />
+            <Pie
+              data={memoryData}
+              dataKey="value"
+              startAngle={0}
+              endAngle={180}
+              cx="50%"
+              cy="80%"
+              innerRadius={100}
+              outerRadius={120}
+              fill="#82ca9d"
+              label
+            />
+          </PieChart>
+        </ResponsiveContainer>
         <div className="flex flex-col gap-[10px]">
           <h2>{name}</h2>
           {stateStatus === 'running' ? (
@@ -87,7 +89,7 @@ const ContainerComponents = React.memo(function ContainerComponents({
           ) : (
             <p className="text-red-500">{stateStatus}</p>
           )}
-          <div className="flex justify-around">
+          <div className="flex justify-around text-white">
             <button
               onClick={() => {
                 handleStart(id);

@@ -1,9 +1,14 @@
 import * as React from 'react'
 import { useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 
 
 function SideBarComponent({ names }: {names: string[]}): React.JSX.Element {
+  const redirect = useNavigate()
+
+  const handleClick = (name: string) => {
+    redirect(`/${name.toLowerCase()}`)
+  }
 
   return (
     <div className="w-full p-[20px] bg-gray-200 dark:bg-gray-200">
@@ -12,8 +17,9 @@ function SideBarComponent({ names }: {names: string[]}): React.JSX.Element {
           return (
             <li key={i} className="flex-1 p-[10px] text-black cursor-pointer border border-gray-400 rounded-[10px] shadow shadow-gray-600
              hover:bg-blue-500 hover:translate-x-[2px] hover:translate-y-[-5px] duration-300 hover:text-white"
+                onClick={()=>{handleClick(name)}}
             >
-              <NavLink to={`/${name.toLowerCase()}`}>{name}</NavLink>
+              <p>{ name }</p>
             </li>
           );
         })}

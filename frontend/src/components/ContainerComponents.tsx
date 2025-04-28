@@ -39,6 +39,7 @@ const ContainerComponents = React.memo(function ContainerComponents({
     return () => {
       socket.off('containerStats', handleStats);
       socket.emit('stopStatsStream', id);
+      socket.disconnect();
     };
   }, [id, state.Status]);
 

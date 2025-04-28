@@ -121,30 +121,34 @@ export class ContainerService {
   }
 
   async handleExec(containerId: string, client: any) {
-    const container = this.docker.getContainer(containerId);
-    const exec = await container.exec({
-      Cmd: [
-        '/bin/bash',
-        '-c',
-        'export PS1="\\[\\u@\\h\\] \\W /\# "; exec /bin/bash',
-      ],
-      AttachStdout: true,
-      AttachStderr: true,
-      AttachStdin: true,
-      Tty: true,
-    });
+    try {
+      const container = this.docker.getContainer(containerId);
+      const exec = await container.exec({
+        Cmd: [
+          '/bin/bash',
+          '-c',
+          'export PS1="\\[\\u@\\h\\] \\W /\# "; exec /bin/bash',
+        ],
+        AttachStdout: true,
+        AttachStderr: true,
+        AttachStdin: true,
+        Tty: true,
+      });
 
-    const stream = await exec.start({ hijack: true, stdin: true });
-    client.on('execInput', (data) => {
-      stream.write(data);
-    });
+      const stream = await exec.start({ hijack: true, stdin: true });
+      client.on('execInput', (data) => {
+        stream.write(data);
+      });
 
-    stream.on('data', (chunk) => {
-      client.emit('execOutput', chunk.toString());
-    });
+      stream.on('data', (chunk) => {
+        client.emit('execOutput', chunk.toString());
+      });
 
-    stream.on('end', () => {
-      client.emit('execOutput', '\r\n[Process exited]');
-    });
+      stream.on('end', () => {
+        client.emit('execOutput', '\r\n[Process exited]');
+      });
+    } catch (e) {
+      console.log(e);
+    }
   }
 }

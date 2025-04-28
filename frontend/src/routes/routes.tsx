@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import LogsPage from '../pages/LogsPage'
 import Monitoring from '../pages/Monitoring'
-import Settings from '../pages/Settings'
+import TerminalPage from '../pages/TerminalPage'
 import ContainersPage from '../pages/ContainersPage'
 import Layout from '../components/Layout'
 
@@ -15,7 +15,7 @@ const routes = createBrowserRouter( [
             { index: true, path: 'monitoring', element: <Monitoring /> },
             { path: 'containers', element: <ContainersPage /> },
             { path: 'logs', element: <LogsPage /> },
-            { path: 'settings', element: <Settings /> },
+            { path: 'settings', element: <TerminalPage /> },
         ],
     },
 

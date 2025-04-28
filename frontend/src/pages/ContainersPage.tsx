@@ -61,7 +61,7 @@ function ContainersPage() {
 
   return (
     <div className="p-6">
-      <ul className='flex flex-row justify-center gap-[20px]'>
+      <ul className='flex flex-row flex-wrap justify-center gap-[20px]'>
         { containers?.map( ( item: any ) => {
           return (
             <li key={ item.id } className="flex items-center justify-center gap-[5px] w-[400px] h-[400px] border border-gray-200">

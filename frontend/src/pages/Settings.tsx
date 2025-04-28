@@ -32,15 +32,12 @@ function Settings() {
       term.current.focus();
     }
 
-    // Запускаємо exec на бекенді
-    socketRef.current.emit('exec', '61a7019e978bc8ef076d1c34d56a5b789352e67c256def80f70b2ff7451cd0e7');
+    socketRef.current.emit('exec', '11b817fe0578d2d9252d6a2f3ff851603482e7e7a511ce36022095e0a9d368c6');
 
-    // Надсилаємо кожне введення користувача
     term.current.onData((data) => {
       socketRef.current.emit('execInput', data);
     });
 
-    // Слухаємо відповідь з контейнера
     socketRef.current.on('execOutput', (data: string) => {
       term.current?.write(data);
     });

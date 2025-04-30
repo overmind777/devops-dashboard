@@ -5,11 +5,14 @@ import { Socket } from 'socket.io-client';
 import { Container } from '../types/types';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useTerminalStore } from '../stores/terminalStore';
 
 
 function ContainersPage() {
 
-  const [containers, setContainers] = useState<Container[]>( [] );
+  const containers = useTerminalStore((state)=>state.containers);
+  const addContainer = useTerminalStore((state)=>state.addContainer);
+  const clearContainers = useTerminalStore((state)=>state.clearContainers);
   const socketRef = useRef<Socket | null>( null );
 
   useEffect( () => {
@@ -20,18 +23,11 @@ function ContainersPage() {
         return;
       }
 
-      setContainers( ( prev: any ) => {
-        return data.map( ( newContainer: any ) => {
-          const oldContainer = prev.find( ( c: any ) => c.id === newContainer.id );
-          if (!oldContainer) return newContainer;
+      clearContainers();
+      data.forEach((container: Container) => {
+        addContainer(container);
+      });
 
-          if (JSON.stringify( oldContainer ) !== JSON.stringify( newContainer )) {
-            return newContainer;
-          }
-
-          return oldContainer;
-        } );
-      } );
     } );
 
     socket.emit( 'findAllContainers' );

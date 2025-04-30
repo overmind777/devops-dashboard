@@ -2,13 +2,9 @@ import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { ContainerProps } from '../types/types';
 import {
-  Legend,
   Pie,
   PieChart,
-  RadialBar,
-  RadialBarChart,
   ResponsiveContainer,
-  Tooltip,
 } from 'recharts';
 import { monitoringSocket } from '../sockets/monitoring-socket';
 
@@ -27,8 +23,8 @@ const ContainerComponents = React.memo(function ContainerComponents({
     const socket = monitoringSocket();
 
     const handleStats = (data: any) => {
-      setCpu(data.cpu);
-      setRam(data.memoryPercent);
+      setCpu(data.cpu !== null ? data.cpu : 0);
+      setRam(data.memoryPercent !== null ? data.memoryPercent : 0);
     };
 
     socket.emit('startStatsStream', id);
@@ -67,6 +63,9 @@ const ContainerComponents = React.memo(function ContainerComponents({
               outerRadius={40}
               fill="fill"
               label
+              animationBegin={100}
+              animationDuration={300}
+              animationEasing="ease-in-out"
             />
             <Pie
               data={memoryData}
@@ -79,6 +78,9 @@ const ContainerComponents = React.memo(function ContainerComponents({
               outerRadius={120}
               fill="#82ca9d"
               label
+              animationBegin={100}
+              animationDuration={300}
+              animationEasing="ease-in-out"
             />
           </PieChart>
         </ResponsiveContainer>
